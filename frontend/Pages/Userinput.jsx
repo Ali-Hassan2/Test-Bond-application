@@ -1,5 +1,6 @@
 import {useState,React} from 'react'
 import Dropdowns from '../Components/Dropdowns'
+import { useNavigate } from 'react-router-dom'
 
 const Userinput = () => {
   const foodd = ['Pasta', 'Biryani', 'Hareesa', 'Karahi', 'Pizza', 'Tacos']
@@ -25,8 +26,12 @@ const Userinput = () => {
     const [ftime,setftime] = useState("");
     const [fice,setfice] = useState("")
     const [drink,setdrink] = useState("");
+    const [genlink,setgenlink] = useState("");
+    const [answers,setanswers] = useState("");
+    const [loading,setloading] = useState(false);
+    const [error,seterror] = useState("");
 
-    const data = [
+    const payload = {
       name,
       food,
       season,
@@ -38,35 +43,91 @@ const Userinput = () => {
       ftime,
       fice,
       drink,
-    ]
+    };
+    
+    const isformfilled = ()=>{
+      return(
+        name&&
+        food &&
+        season&&
+        movgen&&
+        musgen&&
+        travel&&
+        an&&
+        sports&&
+        ftime&&
+        fice&&
+        drink
+      )
+    }
+
+    const handleanswers = async()=>{
+
+      setloading(true);
+      seterror("");
+      setanswers([]);
+
+      const url = `http://localhost:8000/api/userinput/getans/${name}`;
+      try {
+        const response = await fetch(url);
+        if(!response.ok){
+          throw new Error("There is an error while going to the url.")
+        }
+        const data = await response.json();
+        if(!Array.isArray(data) || data.length === 0){
+          console.log("Sorry cannot get the answers");
+          setanswers([]);
+          seterror("No data related to this found");
+        }
+        else{
+          setanswers(data);
+          console.log("The data is ",data);
+        }
+      } catch (error) {
+        console.log("Sorry cannot get the answers cannot make the get call.")
+        setanswers([]);
+        seterror("Sorry could not fetch answer.")
+      }
+
+      setloading(false);
+    }
+    
 
 
 
   const handlesubmit = async(e)=>{
     e.preventDefault();
+    console.log("The musgen is: ",musgen)
+    const url = 'http://localhost:8000/api/userinput/submit';
 
-    const formdata = new FormData();
-    // donot repeat yourself.
-    for(let key in data){
-      formdata.append(key,data[key]);
-    }
 
-    const url = 'http://localhost:5000/api/userinput/submit';
+
+    console.log(name,food,season,movgen,musgen,travel,an,sports,ftime,fice,drink);
 
     try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
 
-      const response = await fetch(url,{
-        formdata,
-        method:'POST'
-      })
+        body: JSON.stringify(payload),
+
+
+      });
 
       if(!response.ok){
         throw new Error ("There is an error in making a post request.");
       }
+      const data = await response.json();
       alert("Data submitted successfully.")
+      setgenlink(data.link);
+      navigate(`/quiz/${data.link}`);
     } catch (error){
       console.log("There is an error",error)
     }
+
+    console.log(genlink)
   }
   return (
     <div>
@@ -88,6 +149,27 @@ const Userinput = () => {
 
 
 
+      {isformfilled()&&(
+        <button type="submit" onClick={handlesubmit}>Submit</button>
+      )}
+
+
+      <button onClick={handleanswers}>Generate Quiz</button>
+
+      {loading && <p>Loading....</p>}
+
+      {genlink&&(
+        <div>
+          <h2>Share with friends.</h2>
+          <a href={`/quiz/${genlink}`} target="_blank">{genlink}</a>
+        </div>
+      )}
+
+
+      {error &&
+      <p style={{color:'red'}}>
+        {error}
+        </p>}
     </div>
 
 

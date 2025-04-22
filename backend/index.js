@@ -1,26 +1,29 @@
-const express = require('express')
-const dotenv = require('dotenv')
-const cors  = require('cors')
-const dbconnection = require('./dbconnection')
-const app = express()
-dotenv.config()
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const dbconnection = require('./dbconnection');
+const userinputroute = require('./Routes/userinputroute');
+const app = express();
 
-const port = process.env.PORT ? parseInt(process.env.PORT) : 2000
+dotenv.config();
 
-dbconnection();
+let port = process.env.PORT ? parseInt(process.env.PORT) : 2000;
 
-if(isNaN(port)){
-	console.log("Invalid port number")
-	port = 2000
+if (isNaN(port)) {
+  console.log("Invalid port number");
+  port = 2000;
 }
 
-app.use(express.json());
 app.use(cors());
+dbconnection();
 
-app.get('/',(req,res)=>{
-	res.send("Hello");
-})
+app.use(express.json());
+app.use('/api/userinput', userinputroute);
 
-app.listen(port,(req,res)=>{
-	console.log("Server is running at port",port)
-})
+app.get('/', (req, res) => {
+  res.send("Hello");
+});
+
+app.listen(port, () => {
+  console.log("Server is running at port", port);
+});

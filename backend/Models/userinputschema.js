@@ -33,11 +33,19 @@ const userinputschema = mongoose.model('outlineschema',new mongoose.Schema({
         type:String,
         required:true,
     },
+    ftime:{
+        type:String,
+        required:true,
+    },
     favicecreamflavor:{
         type:String,
         required:true,
     },
-    favsuperhero:{
+    drink:{
+        type:String,
+        required:true,
+    },
+    generatedlink:{
         type:String,
         required:true,
     }
