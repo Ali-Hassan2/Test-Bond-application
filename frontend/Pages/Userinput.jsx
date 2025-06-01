@@ -1,180 +1,207 @@
-import {useState,React} from 'react'
-import Dropdowns from '../Components/Dropdowns'
-import { useNavigate } from 'react-router-dom'
+import { useState, React } from 'react';
+import Dropdowns from '../Components/Dropdowns';
+import { useNavigate } from 'react-router-dom';
+import quizdata from './data';
+import audio from '../src/assets/audio.wav'
+import './Userinput.css'
+import { createWebSocketModuleRunnerTransport } from 'vite/module-runner';
+
+
 
 const Userinput = () => {
-  const foodd = ['Pasta', 'Biryani', 'Hareesa', 'Karahi', 'Pizza', 'Tacos']
-  const seasons = ['Winter', 'Autmun', 'Summer']
-  const moviegenre = ['Action', 'Comedy', 'Drama', 'Thrillar', 'Horror']
-  const musicgenre = ['Pop', 'Rock', 'Classical', 'Hip-Hop']
-  const traveldestination = ['Paris', 'Tokyo', 'New York', 'Dubai', 'London']
-  const animal = ['Dog', 'Cat', 'Elephent', 'Lion', 'Tiger']
-  const sport = ['Football', 'Cricket', 'Basketball', 'Tennis', 'Snooker']
-  const favtime = ['Morning', 'Noon', 'Evening', 'Night']
-  const icecreamflavor = ['Choclate', 'Vanila', 'Strawberry', 'Mint', 'Cookie Dough']
-  const colddrink = ['YES', 'NO']
+  const navigate = useNavigate();
+  const [currque, setcurr] = useState(0);
+  const [responses, setResponses] = useState({});
 
-    // use states
-    const [name,setname] = useState("");
-    const [food,setfood] = useState("");
-    const [season,setseason] = useState("");
-    const [movgen,setmovgen] = useState("");
-    const [musgen,setmusgen] = useState("");
-    const [travel,settravel] = useState("");
-    const [an,setan] = useState("");
-    const [sports,setsports] = useState("");
-    const [ftime,setftime] = useState("");
-    const [fice,setfice] = useState("")
-    const [drink,setdrink] = useState("");
-    const [genlink,setgenlink] = useState("");
-    const [answers,setanswers] = useState("");
-    const [loading,setloading] = useState(false);
-    const [error,seterror] = useState("");
+  const [name, setname] = useState("");
+  const [food, setfood] = useState("");
+  const [season, setseason] = useState("");
+  const [movgen, setmovgen] = useState("");
+  const [musgen, setmusgen] = useState("");
+  const [travel, settravel] = useState("");
+  const [an, setan] = useState("");
+  const [sports, setsports] = useState("");
+  const [ftime, setftime] = useState("");
+  const [fice, setfice] = useState("");
+  const [drink, setdrink] = useState("");
+  const [genlink, setgenlink] = useState("");
+  const [loading, setloading] = useState(false);
+  const [error, seterror] = useState("");
+  const [copied,setcopied] = useState(false);
 
-    const payload = {
-      name,
-      food,
-      season,
-      movgen,
-      musgen,
-      travel,
-      an,
-      sports,
-      ftime,
-      fice,
-      drink,
-    };
-    
-    const isformfilled = ()=>{
-      return(
-        name&&
-        food &&
-        season&&
-        movgen&&
-        musgen&&
-        travel&&
-        an&&
-        sports&&
-        ftime&&
-        fice&&
-        drink
-      )
+  const payload = {
+    name,
+    food,
+    season,
+    movgen,
+    musgen,
+    travel,
+    an,
+    sports,
+    ftime,
+    fice,
+    drink,
+  };
+
+  const isformfilled = () => {
+    return (
+      name &&
+      food &&
+      season &&
+      movgen &&
+      musgen &&
+      travel &&
+      an &&
+      sports &&
+      ftime &&
+      fice &&
+      drink
+    );
+  };
+
+  const handleAnswer = (key, value) => {
+    if (currque < quizdata.length - 1) {
+      setcurr(currque + 1);
+      new Audio(audio).play()
+    } else {
+      alert('Quiz completed!');
     }
-
-    const handleanswers = async()=>{
-
-      setloading(true);
-      seterror("");
-      setanswers([]);
-
-      const url = `http://localhost:8000/api/userinput/getans/${name}`;
-      try {
-        const response = await fetch(url);
-        if(!response.ok){
-          throw new Error("There is an error while going to the url.")
-        }
-        const data = await response.json();
-        if(!Array.isArray(data) || data.length === 0){
-          console.log("Sorry cannot get the answers");
-          setanswers([]);
-          seterror("No data related to this found");
-        }
-        else{
-          setanswers(data);
-          console.log("The data is ",data);
-        }
-      } catch (error) {
-        console.log("Sorry cannot get the answers cannot make the get call.")
-        setanswers([]);
-        seterror("Sorry could not fetch answer.")
-      }
-
-      setloading(false);
-    }
-    
+  };
+  
 
 
+  console.log("The value of food is:",food)
+  console.log("The value of season is:",season)
+  console.log("The name is",name)
 
-  const handlesubmit = async(e)=>{
+  const handlesubmit = async (e) => {
     e.preventDefault();
-    console.log("The musgen is: ",musgen)
     const url = 'http://localhost:8000/api/userinput/submit';
-
-
-
-    console.log(name,food,season,movgen,musgen,travel,an,sports,ftime,fice,drink);
-
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-
-
       });
 
-      if(!response.ok){
-        throw new Error ("There is an error in making a post request.");
+      if (!response.ok) {
+        throw new Error("There is an error in making a post request.");
       }
       const data = await response.json();
-      alert("Data submitted successfully.")
       setgenlink(data.link);
-      navigate(`/quiz/${data.link}`);
-    } catch (error){
-      console.log("There is an error",error)
+    } catch (error) {
+      console.error("Submission error: ", error);
+    }
+  };
+
+  const question = quizdata[currque];
+
+
+  const handlecopy = () =>{
+    const data_to_copy = `${window.location.origin}/quiz/${genlink}`;
+    navigator.clipboard.writeText(data_to_copy)
+    .then(()=>{
+      setcopied(true);
+      setTimeout(()=>{
+        setcopied(false)
+      },2000)
+    }).catch(err =>{
+      console.warn("Cannot copy",err)
+    })
+  }
+
+  return (
+    <div className='w-[100vw] h-[100vh]  flex justify-center items-center'>
+      <div className='bg-amber-200 rounded-lg shadow-md shadow-black/30 h-[900px] w-[800px] flex justify-center items-center flex-col gap-[0px]'>
+        <form>
+          <h1 className='text-5xl relative -top-[40px] text-center '>Welcome To Bond Test</h1>
+          <input
+            type="text"
+            className=' in border-none shadow-md shadow-black/30 w-[500px] relative -top-[20px] h-[50px] outline-0'
+            placeholder='Your Name'
+            required
+            onChange={(e) => setname(e.target.value)}
+          />
+        </form>
+        {name.length > 0 && (
+
+<div className=' w-[500px] px-4 py-2 flex flex-wrap justify-center items-center'>
+
+{question && (
+  <Dropdowns
+  label={question.label}
+  options={question.options}
+  setthing={(val) => {
+    const key = question.key;
+
+    switch (key) {
+      case "food":
+        setfood(val);
+        break;
+      case "season":
+        setseason(val);
+        break;
+      case "movgen":
+        setmovgen(val);
+        break;
+      case "musgen":
+        setmusgen(val);
+        break;
+      case "travel":
+        settravel(val);
+        break;
+      case "an":
+        setan(val);
+        break;
+      case "sports":
+        setsports(val);
+        break;
+      case "ftime":
+        setftime(val);
+        break;
+      case "fice":
+        setfice(val);
+        break;
+      case "drink":
+        setdrink(val);
+        break;
+      default:
+        break;
     }
 
-    console.log(genlink)
-  }
-  return (
-    <div>
-      <form action="">
-        <input type="Text" placeholder='Your Name' required onChange={(e)=>setname(e.target.value)} /><br />
-      </form>
+    handleAnswer(key, val);
+  }}
+/>
 
-      {/* for consize dropdown showing use the printing function reusable component jo bnaya wa  */}
-      <Dropdowns label="Favourite Food" options={foodd} setthing={setfood}/><br />
-      <Dropdowns label="Favourite Season" options={seasons} setthing={setseason}/><br />
-      <Dropdowns label="Favourite Movie Genre" options={moviegenre} setthing={setmovgen}/><br />
-      <Dropdowns label="Favourite Music Genre" options={musicgenre} setthing={setmusgen}/><br />
-      <Dropdowns label="Favourite Travel Destination" options={traveldestination} setthing={settravel}/><br />
-      <Dropdowns label="Favourite Animal" options={animal} setthing={setan}/><br />
-      <Dropdowns label="Favourite Sport" options={sport} setthing={setsports}/><br />
-      <Dropdowns label="Favourite Time" options={favtime} setthing={setftime}/><br />
-      <Dropdowns label="Favourite Ice Cream Falvor" options={icecreamflavor} setthing={setfice}/><br />
-      <Dropdowns label="Favourite Cold Drink" options={colddrink} setthing={setdrink}/><br />
+)}
+
+</div>
+
+        )}
 
 
+  
 
-      {isformfilled()&&(
-        <button type="submit" onClick={handlesubmit}>Submit</button>
-      )}
+        {isformfilled() && (
+          <button type="submit" onClick={handlesubmit} className='relative top-[20px] text-2xl bg-pink-400 w-[300px] h-[50px] rounded-[50px] text-white cursor-pointer shadow-md shadow-black/30'>Submit</button>
+        )}
 
+        {loading && <p>Loading....</p>}
 
-      <button onClick={handleanswers}>Generate Quiz</button>
+        {genlink && (
+          <div className='relative top-[30px] h-[100px] flex justify-around flex-col'>
+            <h2 className='text-lg text-black '>Share with friends.</h2>
+            <div className='flex gap-[20px]'>
+            <a  className='relative text-blue-500' href={`/quiz/${genlink}`} target="_blank" rel="noreferrer">{genlink}</a>
+            <button className='cursor-pointer hover:text-blue-500' onClick={handlecopy}>{copied ? 'Copied' : "Copy"}</button>
+            </div>
+          </div>
+        )}
 
-      {loading && <p>Loading....</p>}
-
-      {genlink&&(
-        <div>
-          <h2>Share with friends.</h2>
-          <a href={`/quiz/${genlink}`} target="_blank">{genlink}</a>
-        </div>
-      )}
-
-
-      {error &&
-      <p style={{color:'red'}}>
-        {error}
-        </p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+      </div>
     </div>
+  );
+};
 
-
-
-  )
-}
-
-export default Userinput
+export default Userinput;

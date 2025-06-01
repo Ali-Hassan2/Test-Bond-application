@@ -10,13 +10,12 @@ dotenv.config();
 
 
 
-router.get('/getanswers/:name',async(req,res)=>{
-
+router.get('/getanswers/:uniquelink',async(req,res)=>{
     try {
-        const {name} = req.params;
+        const {uniquelink} = req.params;
 
         const userData = await userinputschema.findOne({
-            name:name,
+            generatedlink:uniquelink
         })
         if(!userData){
             res.status(404).send({
@@ -25,6 +24,7 @@ router.get('/getanswers/:name',async(req,res)=>{
             })
         }
 
+        console.log("The user data is ",userData);
         res.status(200).json({
             success:true,
             name: userData.name,
@@ -100,7 +100,7 @@ router.post('/submit', async (req, res) => {
             favfood: food,
             favseason: season,
             favmoviegenre: movgen,
-            favmusicgenre: musgen, // spelling consistent rakho model ke sath
+            favmusicgenre: musgen,
             favtravelto: travel,
             favanimal: an,
             favsport: sports,

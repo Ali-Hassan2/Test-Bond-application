@@ -1,0 +1,143 @@
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+
+const Quiz = () => {
+  const { uniquelink } = useParams();  // Correctly fetching the unique link
+  const [questions, setQuestions] = useState([]);  // To hold the quiz questions
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);  // To track the current question
+  const [score, setScore] = useState(0);  // To hold the score
+  const [quizStarted, setQuizStarted] = useState(false);  // To track if quiz is started
+
+  // Static data for quiz options
+  const foodd = ['Pasta', 'Biryani', 'Hareesa', 'Karahi', 'Pizza', 'Tacos'];
+  const seasons = ['Winter', 'Autumn', 'Summer'];
+  const moviegenre = ['Action', 'Comedy', 'Drama', 'Thriller', 'Horror'];
+  const musicgenre = ['Pop', 'Rock', 'Classical', 'Hip-Hop'];
+  const traveldestination = ['Paris', 'Tokyo', 'New York', 'Dubai', 'London'];
+  const animal = ['Dog', 'Cat', 'Elephant', 'Lion', 'Tiger'];
+  const sport = ['Football', 'Cricket', 'Basketball', 'Tennis', 'Snooker'];
+  const favtime = ['Morning', 'Noon', 'Evening', 'Night'];
+  const icecreamflavor = ['Chocolate', 'Vanilla', 'Strawberry', 'Mint', 'Cookie Dough'];
+  const colddrink = ['YES', 'NO'];
+  
+  const getAnswers = async () => {
+    setQuizStarted(true);
+    const url = `http://localhost:8000/api/userinput/getanswers/${uniquelink}`;
+  
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("There is an error while getting the data");
+      }
+  
+      const data = await response.json();
+      console.log("Fetched data:", data); 
+  
+      if(data.success && data.name){
+        setQuestions(generateQuestions(data));
+      }
+      else {
+        console.log("Sorry, cannot get the data");
+        setQuestions([]);
+      }
+    } catch (error) {
+      console.log("Cannot make a GET call", error);
+      setQuestions([]);
+    }
+  };
+  
+  const generateQuestions = (data) => {
+    return [
+      {
+        question: `What is ${data.name}'s favourite food?`,
+        correct: data.favfood,
+        options: [data.favfood, ...foodd]
+      },
+      {
+        question: `What is ${data.name}'s favourite season?`,
+        correct: data.favseason,
+        options: [data.favseason, ...seasons]
+      },
+      {
+        question: `What is ${data.name}'s favourite movie genre?`,
+        correct: data.favmoviegenre,
+        options: [data.favmoviegenre, ...moviegenre]
+      },
+      {
+        question: `What is ${data.name}'s favourite music genre?`,
+        correct: data.favmusicgenre,
+        options: [data.favmusicgenre, ...musicgenre]
+      },
+      {
+        question: `What is ${data.name}'s favourite travel place?`,
+        correct: data.favtravelto,
+        options: [data.favtravelto, ...traveldestination]
+      },
+      {
+        question: `What is ${data.name}'s favourite animal?`,
+        correct: data.favanimal,
+        options: [data.favanimal, ...animal]
+      },
+      {
+        question: `What is ${data.name}'s favourite sport?`,
+        correct: data.favsport,
+        options: [data.favsport, ...sport]
+      },
+      {
+        question: `What is ${data.name}'s favourite time of day?`,
+        correct: data.ftime,
+        options: [data.ftime, ...favtime]
+      },
+      {
+        question: `What is ${data.name}'s favourite ice cream flavor?`,
+        correct: data.favicecreamflavor,
+        options: [data.favicecreamflavor, ...icecreamflavor]
+      },
+      {
+        question: `Does ${data.name} like cold drinks?`,
+        correct: data.drink,
+        options: [data.drink, ...colddrink]
+      }
+    ];
+  };
+
+
+  const handleAnswer = (selectedAnswer) => {
+    if (selectedAnswer === questions[currentQuestionIndex].correct) {
+      setScore(score + 1); 
+    }
+
+    if (currentQuestionIndex + 1 < questions.length) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);  
+    } else {
+
+      alert(`Quiz Finished! Your final score is: ${score + 1}`);
+    }
+  };
+
+  if (!quizStarted) {
+    return (
+      <div>
+        <h2>Welcome to the Quiz!</h2>
+        <button onClick={getAnswers}>Start Quiz</button>
+      </div>
+    );
+  }
+  if (questions.length === 0) {
+    return <div>Loading quiz...</div>;
+  }
+  const currentQuestion = questions[currentQuestionIndex];
+
+  return (
+    <div>
+      <h3>{currentQuestion.question}</h3>
+      {currentQuestion.options.map((option, index) => (
+        <button key={index} onClick={() => handleAnswer(option)}>
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default Quiz;

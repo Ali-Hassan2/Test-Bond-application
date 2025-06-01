@@ -14,9 +14,10 @@ if (isNaN(port)) {
   port = 2000;
 }
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173'
+}))
 dbconnection();
-
 app.use(express.json());
 app.use('/api/userinput', userinputroute);
 
